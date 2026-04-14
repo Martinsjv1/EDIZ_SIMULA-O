@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDIZ - Calculadora Inteligente</title>
+    <!-- Incluir biblioteca HTML2PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #060b13; 
+            --card-bg: rgba(16, 26, 43, 0.4);
+            --plan-card-bg: rgba(20, 32, 53, 0.6);
+            --primary: #28b4ff; 
+            --primary-mid: #1c73ff; 
+            --primary-dark: #133dff; 
+            --primary-hover: #4dc2ff;
+            --accent: #00ffcc; 
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(40, 180, 255, 0.15);
+            --glass-border: 1px solid rgba(40, 180, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            /* Instrução Crítica para forçar o Chrome a pintar os fundos coloridos na impressão */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(28, 115, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(0, 255, 204, 0.05) 0%, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem 5rem 1rem;
+        }
+
+        h1, h2, h3, .fintech-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header img {
+            width: 120px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(40, 180, 255, 0.2);
+            object-fit: contain;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #28b4ff, #00ffcc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 0.1em;
+        }
+
+        /* ----- PLAN DEMONSTRATION ----- */
+        .plans-demo {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 4rem;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        @media (max-width: 900px) {
+            .plans-demo {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .plan-card {
+            background: var(--plan-card-bg);
+            backdrop-filter: blur(10px);
+            border: var(--glass-border);
+            border-top: 4px solid var(--primary-mid);
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        .plan-card.plan-pro { border-top-color: var(--accent); }
+        .plan-card.plan-pro h3 { color: var(--accent); }
+
+        .plan-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+        }
+
+        .plan-card .readers-range {
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+            padding-bottom: 1.5rem;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .plan-details {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-top: auto;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .detail-icon {
+            background: rgba(40, 180, 255, 0.1);
+            color: var(--primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .detail-item strong { color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem;}
+
+        .discount-badge {
+            background: linear-gradient(90deg, rgba(40, 180, 255, 0.1), rgba(0, 255, 204, 0.1));
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            color: var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        /* ----- ACTION BUTTONS ----- */
+        .btn-simulate {
+            background: linear-gradient(135deg, var(--primary-mid), var(--primary-dark));
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 1.25rem 3rem;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(28, 115, 255, 0.3);
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .btn-simulate:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(28, 115, 255, 0.5);
+            background: linear-gradient(135deg, var(--primary), var(--primary-mid));
+        }
+        
+        .btn-export {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.1);
+        }
+        .btn-export:hover {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            box-shadow: 0 15px 40px rgba(0, 255, 204, 0.2);
+            border-color: rgba(0, 255, 204, 0.6);
+        }
+
+        /* ----- DASHBOARD / RESULTS ----- */
+        .dashboard {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 2.8fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .dash-grid { grid-template-columns: 1fr; }
+        }
+
+        .dash-card {
+            background: var(--card-bg);
+            border: var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(16px);
+        }
+
+        .context-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .context-item {
+            background: rgba(0,0,0,0.2);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        .salas-box {
+            border-color: rgba(40, 180, 255, 0.4); 
+            background: rgba(40, 180, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .salas-box:hover {
+            background: rgba(40, 180, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(28, 115, 255, 0.2);
+        }
+
+        .context-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .context-value {
+            font-size: 2rem;
+            font-family: 'Space Grotesk', sans-serif;
+            color: #fff;
+            margin-top: 0.25rem;
+            font-weight: 700;
+        }
+
+        .plan-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(40, 180, 255, 0.1);
+            color: var(--primary);
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(40, 180, 255, 0.2);
+        }
+
+        .results-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 600px) {
+            .results-panel { grid-template-columns: 1fr; }
+        }
+
+        .val-item {
+            background: rgba(255,255,255,0.02);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .val-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .val-number {
+            font-size: 1.5rem;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+        }
+        .val-sub {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 0.5rem;
+        }
+
+        .highlight-item {
+            background: linear-gradient(135deg, rgba(28, 115, 255, 0.1), rgba(0, 255, 204, 0.05));
+            border-color: rgba(40, 180, 255, 0.3);
+            grid-column: span 2;
+        }
+
+        @media (max-width: 600px) {
+            .highlight-item { grid-column: span 1; }
+        }
+
+        .highlight-item .val-number {
+            font-size: 2.2rem;
+            color: var(--accent);
+        }
+
+        /* IMPACT SECTION */
+        .impact-section {
+            grid-column: 1 / -1;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, rgba(0, 255, 204, 0.1) 0%, rgba(28, 115, 255, 0.05) 100%);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 768px) {
+            .impact-section { flex-direction: column; text-align: center; gap: 1.5rem;}
+        }
+
+        .impact-text h3 {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        .impact-text p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            max-width: 400px;
+        }
+        .impact-value {
+            text-align: right;
+        }
+        @media (max-width: 768px) { .impact-value { text-align: center; } }
+        
+        .impact-value span {
+            display: block;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .impact-value .huge-num {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+        }
+
+        /* Formulário PDF Head - Invisível na Web, Visível só no PDF */
+        #pdfLogoHeader {
+            display: none;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        #pdfLogoHeader img {
+            width: 100px;
+            margin-bottom: 1rem;
+        }
+        #pdfLogoHeader h2 {
+            color: #fff;
+            font-size: 1.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* ----- MODAL ----- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(6, 11, 19, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: rgba(16, 26, 43, 0.95);
+            border: 1px solid rgba(40, 180, 255, 0.2);
+            border-radius: 24px;
+            padding: 3rem;
+            width: 90%;
+            max-width: 600px;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem; right: 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .modal-close:hover { color: #fff; }
+
+        .modal-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .input-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .input-item label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper input, .input-wrapper select {
+            width: 100%;
+            background: rgba(6, 11, 19, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1rem 1rem 3rem;
+            color: #fff;
+            font-size: 1.1rem;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.3s ease;
+            appearance: none;
+        }
+        
+        .input-wrapper input:focus, .input-wrapper select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(40, 180, 255, 0.15);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--primary-mid);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            grid-column: 1 / -1;
+        }
+        .btn-submit:hover {
+            background: var(--primary);
+        }
+
+        /* -------------------------------------------
+           REGRAS DE IMPRESSÃO (NATIVE PDF) 
+           Isto garante que o Ctrl+P fique exatamente
+           igual ao tema escuro da tela.
+           ------------------------------------------- */
+        @media print {
+            @page {
+                size: A4 landscape; /* Paisagem ajuda o grid */
+                margin: 0; /* Remove rodapés e carimbos do navegador */
+            }
+            body { 
+                background-color: #060b13 !important; 
+                background-image: none !important;
+                color: #ffffff !important;
+                padding: 10mm !important;
+            }
+            
+            /* Esconde as ferramentas da UI pra n sair na impressora */
+            .plans-demo, .btn-simulate, .header, #btnStart { display: none !important; }
+            #dashboard { display: block !important; margin-top: 0 !important; }
+            .gui-element { display: none !important; }
+            #pdfLogoHeader { display: block !important; margin-top: 2rem !important; }
+            
+            /* Força a grade e as caixas de fundo no papel */
+            .dash-grid {
+                display: grid !important;
+                grid-template-columns: 1.2fr 2.8fr !important;
+                gap: 2rem !important;
+            }
+            .results-panel {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 1.5rem !important;
+            }
+            .dash-card {
+                background-color: rgba(16, 26, 43, 0.8) !important;
+                border: 1px solid rgba(40, 180, 255, 0.3) !important;
+                break-inside: avoid;
+            }
+            .context-item, .val-item {
+                background-color: rgba(255,255,255,0.05) !important;
+                border: 1px solid rgba(255,255,255,0.1) !important;
+                break-inside: avoid;
+            }
+            .highlight-item {
+                background-color: rgba(28, 115, 255, 0.1) !important;
+                border: 1px solid rgba(40, 180, 255, 0.3) !important;
+            }
+            .impact-section {
+                background-color: rgba(0, 255, 204, 0.1) !important;
+                border: 1px solid rgba(0, 255, 204, 0.3) !important;
+                break-inside: avoid;
+            }
+            .huge-num { text-shadow: none !important; }
+        }
+
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="WhatsApp%20Image%202026-04-14%20at%2009.04.32.jpeg" alt="Logo EDIZ" onerror="this.src='https://via.placeholder.com/120x80/101a2b/ffffff?text=EDIZ'; this.onerror=null;">
+        <h1>EDIZ</h1>
+    </div>
+
+    <!-- Demonstração dos Planos -->
+    <div class="plans-demo" id="plansDemo">
+        <div class="plan-card">
+            <h3 style="color: #63b3ed;">BASIC</h3>
+            <div class="readers-range">1 a 3 Salas / Leitores</div>
+            <div class="plan-details">
+                <div class="detail-item">
+                    <div class="detail-icon"><span>💳</span></div>
+                    <div><strong>R$ 299,00</strong> /leitor</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-icon"><span>💻</span></div>
+                    <div><strong>R$ 590,00</strong> /sistema</div>
+                </div>
+                <div class="discount-badge" style="background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.1);">0% de Desconto</div>
+            </div>
+        </div>
+
+        <div class="plan-card">
+            <h3 style="color: #28b4ff;">PLUS</h3>
+            <div class="readers-range">4 a 8 Salas / Leitores</div>
+            <div class="plan-details">
+                <div class="detail-item">
+                    <div class="detail-icon"><span>💳</span></div>
+                    <div><strong>R$ 299,00</strong> /leitor</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-icon"><span>💻</span></div>
+                    <div><strong>R$ 590,00</strong> /sistema</div>
+                </div>
+                <div class="discount-badge">10% de Desconto</div>
+            </div>
+        </div>
+
+        <div class="plan-card plan-pro">
+            <h3 style="color: var(--accent);">PRO</h3>
+            <div class="readers-range">9 a 12+ Salas / Leitores</div>
+            <div class="plan-details">
+                <div class="detail-item">
+                    <div class="detail-icon"><span>💳</span></div>
+                    <div><strong>R$ 299,00</strong> /leitor</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-icon"><span>💻</span></div>
+                    <div><strong>R$ 590,00</strong> /sistema</div>
+                </div>
+                <div class="discount-badge">15 a 20% de Desconto</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-simulate" onclick="openModal()" id="btnStart">🎯 Fazer Simulação Inteligente</button>
+
+    <!-- DASHBOARD DE RESULTADOS (Oculto inicialmente) -->
+    <div class="dashboard" id="dashboard">
+        
+        <!-- Esta div é a que será transformada em PDF -->
+        <div id="pdfArea" style="padding: 1rem; border-radius: 24px;">
+            <div id="pdfLogoHeader">
+                <img src="WhatsApp%20Image%202026-04-14%20at%2009.04.32.jpeg" alt="Logo EDIZ" onerror="this.src='https://via.placeholder.com/120x80/101a2b/ffffff?text=EDIZ'; this.onerror=null;">
+                <h2>Proposta Comercial - EDIZ</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Resumo da Simulação de Investimento</p>
+            </div>
+
+            <h2 id="dashTitle" style="font-size: 1.8rem; margin-bottom: 1.5rem; text-align: center;">Resumo do Investimento</h2>
+            
+            <div class="dash-grid">
+                <!-- Coluna da Esquerda: Contexto do Cliente -->
+                <div class="dash-card context-panel">
+                    
+                    <div class="context-item">
+                        <div class="context-label">Nº de Alunos</div>
+                        <div class="context-value" id="dashAlunos">0</div>
+                    </div>
+                    
+                    <!-- CAIXA DE SALAS/LEITORES CLICÁVEL -->
+                    <div class="context-item salas-box" onclick="openModal()" title="Clique para Editar">
+                        <!-- Lápis Fixo Gui -->
+                        <div class="gui-element" style="position: absolute; right: 1.5rem; top: 1.5rem; font-size: 1.5rem; opacity: 0.8; filter: drop-shadow(0 0 5px rgba(28, 115, 255, 0.5));">✏️</div>
+                        
+                        <div class="context-label">Salas / Leitores</div>
+                        <div class="context-value" id="dashSalas">0</div>
+                        <div class="plan-badge" id="dashPlanName">Plano Basic</div>
+                    </div>
+                    
+                    <div class="context-item" style="background: transparent; border: 1px dashed rgba(255,255,255,0.2);">
+                        <div class="context-label">Tempo do Contrato</div>
+                        <div class="context-value" style="font-size: 1.5rem;"><span id="dashMeses">12</span> meses</div>
+                    </div>
+                </div>
+
+                <!-- Coluna da Direita: Valores e Resultado -->
+                <div class="dash-card results-panel">
+                    
+                    <div class="val-item">
+                        <div class="val-label">Mensalidade do Sistema</div>
+                        <div class="val-number">R$ 590,00</div>
+                        <div class="val-sub">Fixo padronizado</div>
+                    </div>
+                    
+                    <div class="val-item">
+                        <div class="val-label" id="labelLeitores">Locação de Leitores (0)</div>
+                        <div class="val-number" id="valLeitores">R$ 0,00</div>
+                        <div class="val-sub" id="valDescLabel" style="color: var(--accent);">0% de Desconto Aplicado</div>
+                    </div>
+
+                    <div class="val-item">
+                        <div class="val-label">Frete + Implantação</div>
+                        <div class="val-number">R$ 490,00</div>
+                        <div class="val-sub">Pagamento único (À vista)</div>
+                    </div>
+
+                    <div class="val-item highlight-item">
+                        <div class="val-label">Valor Combo MENSAL</div>
+                        <div class="val-number" id="valMensalFinal">R$ 0,00</div>
+                        <div class="val-sub">Sistema + Leitores com desconto</div>
+                    </div>
+
+                    <!-- O Grande Impacto Por Aluno -->
+                    <div class="impact-section">
+                        <div class="impact-text">
+                            <h3>Análise de Custo por Aluno</h3>
+                            <p>Diluindo o valor total investido neste período, este é o impacto mensal por aluno para automatizar a instituição.</p>
+                        </div>
+                        <div class="impact-value">
+                            <span>Custo Mensal Por Aluno</span>
+                            <div class="huge-num" id="valPorAluno">R$ 0,00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-simulate gui-element" style="padding: 1rem 2rem; font-size: 1rem; background: transparent; border: 1px solid var(--primary); box-shadow: none;" onclick="openModal()">🔄 Refazer Simulação</button>
+            <button class="btn-simulate btn-export gui-element" onclick="exportToPDF()">📄 Exportar Proposta PDF</button>
+        </div>
+    </div>
+
+
+    <!-- MODAL EDITÁVEL DE ENTRADA DE DADOS -->
+    <div class="modal-overlay gui-element" id="simModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-header">
+                <h2>Configurar Automação</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Insira ou edite os parâmetros da simulação.</p>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-item full-width">
+                    <label>Quantidade Total de Alunos</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">👥</span>
+                        <input type="number" id="inputAlunos" placeholder="Ex: 1000" min="1" value="500">
+                    </div>
+                </div>
+
+                <div class="input-item">
+                    <label>Leitores (Salas)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🚪</span>
+                        <input type="number" id="inputSalas" placeholder="Ex: 5" min="1" value="2" oninput="handleSalasChange()">
+                    </div>
+                </div>
+
+                <div class="input-item">
+                    <label>Tempo Contrato (Meses)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">📅</span>
+                        <input type="number" id="inputMeses" placeholder="Ex: 12" min="1" value="12">
+                    </div>
+                </div>
+
+                <div class="input-item">
+                    <label>Plano Comercial</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">⭐</span>
+                        <select id="inputPlan" onchange="handlePlanChange()">
+                            <option value="Basic">Plano Basic</option>
+                            <option value="Plus">Plano Plus</option>
+                            <option value="Pro">Plano Pro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-item">
+                    <label>Desconto (%)</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">🏷️</span>
+                        <input type="number" id="inputDesc" placeholder="Ex: 10" min="0" max="100" value="0">
+                    </div>
+                </div>
+
+                <button class="btn-submit" onclick="generateSimulation()">🤖 Atualizar Simulação</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('simModal');
+        const dashboard = document.getElementById('dashboard');
+        const btnStart = document.getElementById('btnStart');
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        function openModal() {
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        function handleSalasChange() {
+            const salas = parseInt(document.getElementById('inputSalas').value) || 1;
+            const planSelect = document.getElementById('inputPlan');
+            const descInput = document.getElementById('inputDesc');
+
+            if (salas >= 1 && salas <= 3) {
+                planSelect.value = 'Basic';
+                descInput.value = 0;
+            } else if (salas >= 4 && salas <= 8) {
+                planSelect.value = 'Plus';
+                descInput.value = 10;
+            } else if (salas >= 9) {
+                planSelect.value = 'Pro';
+                descInput.value = 15;
+            }
+        }
+
+        function handlePlanChange() {
+            const plan = document.getElementById('inputPlan').value;
+            const descInput = document.getElementById('inputDesc');
+
+            if (plan === 'Basic') descInput.value = 0;
+            if (plan === 'Plus') descInput.value = 10;
+            if (plan === 'Pro') descInput.value = 15;
+        }
+
+        function generateSimulation() {
+            const alunos = parseInt(document.getElementById('inputAlunos').value) || 1;
+            const salas = parseInt(document.getElementById('inputSalas').value) || 1;
+            const meses = parseInt(document.getElementById('inputMeses').value) || 1;
+            const planoName = document.getElementById('inputPlan').options[document.getElementById('inputPlan').selectedIndex].text;
+            const descPercent = parseFloat(document.getElementById('inputDesc').value) || 0;
+
+            const valSistemaBase = 590.00;
+            const valLeitorBase = 299.00;
+
+            const totalFacialBase = salas * valLeitorBase;
+            const descontoReais = totalFacialBase * (descPercent / 100);
+            const totalFacialLiquido = totalFacialBase - descontoReais;
+            
+            const comboMensal = valSistemaBase + totalFacialLiquido;
+            const mensalPorAluno = comboMensal / alunos;
+
+            document.getElementById('dashAlunos').innerText = alunos.toLocaleString('pt-BR');
+            document.getElementById('dashSalas').innerText = salas;
+            document.getElementById('dashPlanName').innerText = planoName;
+            document.getElementById('dashMeses').innerText = meses;
+
+            document.getElementById('labelLeitores').innerText = `Locação de Leitores (${salas})`;
+            document.getElementById('valLeitores').innerText = formatCurrency(totalFacialLiquido);
+            document.getElementById('valDescLabel').innerText = `${descPercent}% de Desconto Aplicado (Economia de ${formatCurrency(descontoReais)}/mês)`;
+            
+            document.getElementById('valMensalFinal').innerText = formatCurrency(comboMensal);
+            
+            document.getElementById('valPorAluno').innerText = formatCurrency(mensalPorAluno);
+
+            closeModal();
+            btnStart.style.display = 'none';
+            dashboard.style.display = 'block';
+            
+            setTimeout(() => {
+                dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+
+        function exportToPDF() {
+            // Em vez de usar scripts lentos (html2pdf) que falham em arquivos locais,
+            // ativamos a impressão nativa que agora está com o CSS PERFEITO.
+            window.print();
+        }
+    </script>
+</body>
+</html>
